@@ -31,12 +31,17 @@
                 <th>PriorityTask</th>
                 <td>{{ task.priorityTask }}</td>
             </tr>
+            <tr>
+                <th>CategoryTask</th>
+                <td>{{ task.category }}</td>
+            </tr>
         </tbody>
     </table>
+    <div style="display:flex">
+        <a class="btn mx-2" href="{{ path('app_task_index') }}">back to list</a>
 
-    <a href="{{ path('app_task_index') }}">back to list</a>
+        <a class="btn mx-2" href="{{ path('app_task_edit', {'idTask': task.idTask}) }}">edit</a>
 
-    <a href="{{ path('app_task_edit', {'idTask': task.idTask}) }}">edit</a>
-
-    {{ include('task/_delete_form.html.twig') }}
+        {{ include('task/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

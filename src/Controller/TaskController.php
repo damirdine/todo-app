@@ -4,13 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Form\TaskType;
+use DateTime;
+use Doctrine\DBAL\Types\DateTimeType as TypesDateTimeType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\{TextType, ButtonType, EmailType, HiddenType, PasswordType, TextareaType, SubmitType, NumberType, DateType, MoneyType, BirthdayType, ChoiceType, DateTimeType};
 
-#[Route('/')]
+#[Route('/task')]
 class TaskController extends AbstractController
 {
     #[Route('/', name: 'app_task_index', methods: ['GET'])]
@@ -29,7 +32,19 @@ class TaskController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $task = new Task();
-        $form = $this->createForm(TaskType::class, $task);
+        $task->setCreatedDateTask(new DateTime());
+        //$form = $this->createForm(TaskType::class, $task);
+        $form = $this->createFormBuilder($task)
+            ->add('nameTask')
+            ->add('descriptionTask',)
+            ->add('dueDateTask',DateTimeType::class, ['widget'=>'single_text'])
+            ->add('priorityTask',ChoiceType::class,['choices'  => [
+                'Haut' => 'Haut',
+                'Moyen' => 'Moyen',
+                'Bas' => 'Bas',
+            ]])
+            ->add('category')
+            ->getForm();
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -74,7 +89,7 @@ class TaskController extends AbstractController
     #[Route('/{idTask}', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$task->getIdTask(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $task->getIdTask(), $request->request->get('_token'))) {
             $entityManager->remove($task);
             $entityManager->flush();
         }
