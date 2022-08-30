@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Task index{% endblock %}
+
+{% block body %}
+    <h1>Task index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>IdTask</th>
+                <th>NameTask</th>
+                <th>DescriptionTask</th>
+                <th>CreatedDateTask</th>
+                <th>DueDateTask</th>
+                <th>PriorityTask</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td>{{ task.idTask }}</td>
+                <td>{{ task.nameTask }}</td>
+                <td>{{ task.descriptionTask }}</td>
+                <td>{{ task.createdDateTask ? task.createdDateTask|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ task.dueDateTask ? task.dueDateTask|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ task.priorityTask }}</td>
+                <td>
+                    <a href="{{ path('app_task_show', {'idTask': task.idTask}) }}">show</a>
+                    <a href="{{ path('app_task_edit', {'idTask': task.idTask}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_task_new') }}">Create new</a>
+{% endblock %}
