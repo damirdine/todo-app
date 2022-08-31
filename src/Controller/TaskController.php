@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Entity\User;
 use App\Form\TaskType;
 use DateTime;
 use Doctrine\DBAL\Types\DateTimeType as TypesDateTimeType;
@@ -19,9 +20,10 @@ class TaskController extends AbstractController
     #[Route('/', name: 'app_task_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser();
         $tasks = $entityManager
             ->getRepository(Task::class)
-            ->findAll();
+            ->findBy(['User' =>$user]);
 
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
@@ -32,7 +34,9 @@ class TaskController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $task = new Task();
+        $user = $this->getUser();
         $task->setCreatedDateTask(new DateTime());
+        $task->setUser($user);
         //$form = $this->createForm(TaskType::class, $task);
         $form = $this->createFormBuilder($task)
             ->add('nameTask')
@@ -44,6 +48,7 @@ class TaskController extends AbstractController
                 'Bas' => 'Bas',
             ]])
             ->add('category')
+            //->add('user_id',HiddenType::class)
             ->getForm();
         $form->handleRequest($request);
 
