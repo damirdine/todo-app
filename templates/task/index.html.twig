@@ -4,7 +4,11 @@
 
 {% block body %}
 <nav>
-{# {{app.user.email}} <a href="{{ path('app_logout')}}">Deconnexion</a> #}
+{% if is_granted('ROLE_USER') %}
+{{app.user.email}}<a href="{{ path('app_logout')}}">Deconnexion</a>
+{% else %}
+Hello <a href="{{ path('app_login')}}">Connection</a>
+{% endif %}
 </nav>
     <h1>Task index</h1>
 
