@@ -6,8 +6,12 @@
 <nav>
 {% if is_granted('ROLE_USER') %}
 {{app.user.email}}<a href="{{ path('app_logout')}}">Deconnexion</a>
+<img class="fit-picture"
+     src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}"
+     alt="User avatar" >
+
 {% else %}
-Hello <a href="{{ path('app_login')}}">Connection</a>
+Hello il faut <a href="{{ path('app_login')}}">Connection</a>
 {% endif %}
 </nav>
     <h1>Task index</h1>
