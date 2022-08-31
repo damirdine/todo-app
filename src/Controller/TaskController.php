@@ -3,16 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Task;
-use App\Entity\User;
 use App\Form\TaskType;
 use DateTime;
-use Doctrine\DBAL\Types\DateTimeType as TypesDateTimeType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Form\Extension\Core\Type\{TextType, ButtonType, EmailType, HiddenType, PasswordType, TextareaType, SubmitType, NumberType, DateType, MoneyType, BirthdayType, ChoiceType, DateTimeType};
 
 #[Route('/task')]
 class TaskController extends AbstractController
@@ -37,19 +34,7 @@ class TaskController extends AbstractController
         $user = $this->getUser();
         $task->setCreatedDateTask(new DateTime());
         $task->setUser($user);
-        //$form = $this->createForm(TaskType::class, $task);
-        $form = $this->createFormBuilder($task)
-            ->add('nameTask')
-            ->add('descriptionTask',)
-            ->add('dueDateTask',DateTimeType::class, ['widget'=>'single_text'])
-            ->add('priorityTask',ChoiceType::class,['choices'  => [
-                'Haut' => 'Haut',
-                'Moyen' => 'Moyen',
-                'Bas' => 'Bas',
-            ]])
-            ->add('category')
-            //->add('user_id',HiddenType::class)
-            ->getForm();
+        $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
