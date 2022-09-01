@@ -48,10 +48,10 @@ class RegistrationController extends AbstractController
                         $this->getParameter('avatars_directory'),
                         $avatarUrl
                     );
+                    $user->setAvatar($avatarUrl);
                 }catch (FileException $e) {
                     // ... handle exception if something happens during file upload
                 }
-                $user->setAvatar($avatarUrl);
             }
             $user
             // encode the plain password
@@ -69,7 +69,7 @@ class RegistrationController extends AbstractController
             // generate a signed url and email it to the user
             $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
                 (new TemplatedEmail())
-                    ->from(new Address('damirdine@outlook.fr', 'Damirdine Bot'))
+                    ->from(new Address('hello@exemple.com', 'Damirdine Bot'))
                     ->to($user->getEmail())
                     ->subject('Please Confirm your Email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
