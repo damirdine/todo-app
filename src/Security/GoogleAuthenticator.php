@@ -34,19 +34,19 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
     public function supports(Request $request): ?bool
     {
         // continue ONLY if the current ROUTE matches the check ROUTE
-        return $request->getPathInfo() === 'connect_google_check' && $request->isMethod('GET');
+        return $request->attributes->get('_route') === 'connect_google_check';    
     }
-    public function getCredentials(Request $request)
-    {
-        // this method is only called if supports() returns true
+    // public function getCredentials(Request $request)
+    // {
+    //     // this method is only called if supports() returns true
 
-        // For Symfony lower than 3.4 the supports method need to be called manually here:
-        // if (!$this->supports($request)) {
-        //     return null;
-        // }
+    //     // For Symfony lower than 3.4 the supports method need to be called manually here:
+    //     // if (!$this->supports($request)) {
+    //     //     return null;
+    //     // }
 
-        return $this->fetchAccessToken($this->getGoogleClient());
-    }
+    //     return $this->fetchAccessToken($this->getGoogleClient());
+    // }
 
     public function getUser($credentials, UserProviderListener $userProvider)
     {
@@ -97,19 +97,20 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
                 // 1) have they logged in with google before? Easy!
                 $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $googleUser->getEmail()]);
 
-                if ($existingUser) {
-                    return $existingUser;
-                }
-                $user = new User();
-                $user->setEmail($googleUser->getEmail());
-                $user->setAvatar($googleUser->geAvatar());
-                $user->setFirstName($googleUser->getGivenName());
-                $user->setLastName($googleUser->getFamilyName());
-                $user->setRoles(['ROLE_USER']);
-                $this->entityManager->persist($user);
-                $this->entityManager->flush();
+                if (!$existingUser) {
+                    $user = new User();
+                    $user->setEmail($googleUser->getEmail());
+                    $user->setAvatar($googleUser->geAvatar());
+                    $user->setFirstName($googleUser->getGivenName());
+                    $user->setLastName($googleUser->getFamilyName());
+                    $user->setRoles(['ROLE_USER']);
+                    $this->entityManager->persist($user);
+                    $this->entityManager->flush();
 
-                return $user;
+                    return $user;
+                }
+            
+                return $existingUser;
             })
         );
     }
