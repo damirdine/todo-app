@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Security;
 
 use App\Entity\User; // your user entity
@@ -15,6 +16,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Http\EventListener\UserProviderListener;
 
 class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationEntrypointInterface
 {
@@ -34,14 +36,59 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
         // continue ONLY if the current ROUTE matches the check ROUTE
         return $request->getPathInfo() === 'connect_google_check' && $request->isMethod('GET');
     }
+    public function getCredentials(Request $request)
+    {
+        // this method is only called if supports() returns true
 
+        // For Symfony lower than 3.4 the supports method need to be called manually here:
+        // if (!$this->supports($request)) {
+        //     return null;
+        // }
+
+        return $this->fetchAccessToken($this->getGoogleClient());
+    }
+
+    public function getUser($credentials, UserProviderListener $userProvider)
+    {
+        /** @var GoogleUser $GoogleUser */
+        $googleUser = $this->getGoogleClient()
+            ->fetchUserFromToken($credentials);
+
+        $email = $googleUser->getEmail();
+
+        // 1) have they logged in with google before? Easy!
+        $existingUser = $this->entityManager->getRepository(User::class)
+            ->findOneBy(['email' => $email]);
+        if (!$existingUser) {
+            $user = new User();
+            $user->setEmail($googleUser->getEmail());
+            $user->setAvatar($googleUser->getAvatar());
+            $user->setFirstName($googleUser->getFirstName());
+            $user->setLastName($googleUser->getLastName());
+            $user->setRoles(['ROLE_USER']);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+        }
+
+        // 2) do we have a matching user by email
+        return $user;
+    }
+    /**
+     * @return GoogleClient
+     */
+    private function getGoogleClient()
+    {
+        return $this->clientRegistry
+            // "google_main" is the key used in config/packages/knpu_oauth2_client.yaml
+            ->getClient('google_main');
+    }
     public function authenticate(Request $request): Passport
     {
         $client = $this->clientRegistry->getClient('google_main');
         $accessToken = $this->fetchAccessToken($client);
 
         return new SelfValidatingPassport(
-            new UserBadge($accessToken->getToken(), function() use ($accessToken, $client) {
+            new UserBadge($accessToken->getToken(), function () use ($accessToken, $client) {
                 /** @var GoogleUser $googleUser */
                 $googleUser = $client->fetchUserFromToken($accessToken);
 
@@ -73,7 +120,7 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
         $targetUrl = $this->router->generate('app_task_index');
 
         return new RedirectResponse($targetUrl);
-    
+
         // or, on success, let the request continue to be handled by the controller
         //return null;
     }
@@ -84,8 +131,8 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
 
         return new Response($message, Response::HTTP_FORBIDDEN);
     }
-    
-   /**
+
+    /**
      * Called when authentication is needed, but it's not sent.
      * This redirects to the 'login'.
      */
